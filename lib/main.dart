@@ -8,20 +8,17 @@ import 'package:flutter/services.dart' show rootBundle;
 List<List<String>> data = [];
 
 void main() {
-
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget{
+class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MyHomePage(title: 'appTitle', storage: DataStorage())
-    );
+        home: MyHomePage(title: 'appTitle', storage: DataStorage()));
   }
-
 }
 
 class DataStorage {
@@ -47,7 +44,8 @@ class DataStorage {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title, required this.storage}) : super(key: key);
+  const MyHomePage({Key? key, required this.title, required this.storage})
+      : super(key: key);
   final DataStorage storage;
   final String title;
 
@@ -65,14 +63,14 @@ class _MyHomePageState extends State<MyHomePage> {
     temp = data.split('\n');
     temp.removeLast();
     var temp2 = [];
-    for (int i=0; i<temp.length; i++){
+    for (int i = 0; i < temp.length; i++) {
       temp2.add(temp[i].split(';'));
     }
     return temp2;
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     readFile = loadAsset();
   }
@@ -87,44 +85,79 @@ class _MyHomePageState extends State<MyHomePage> {
         child: FutureBuilder(
           future: readFile,
           builder: (
-              BuildContext context,
-              AsyncSnapshot<List> snapshot,
+            BuildContext context,
+            AsyncSnapshot<List> snapshot,
           ) {
             Widget child;
-            if (snapshot.hasData){
+            if (snapshot.hasData) {
               child = ListView.builder(
                 itemCount: snapshot.data?.length,
-                itemBuilder: (BuildContext context, int index){
-                  return Container(
-                      height: 40,
-                      child: Center(
-                          child: Text(snapshot.data![index][2]))
-                    );
-                  },
-                );
-            } else if (snapshot.hasError){
+                itemBuilder: (BuildContext context, int index) {
+                  return MyListItem(list: snapshot.data![index]);
+                },
+              );
+            } else if (snapshot.hasError) {
               child = Text('Error');
             } else {
-              child = Text("Something");
+              child = Center(
+                child: ListView(children: const [Text("Loading...")]),
+              );
             }
             return Center(child: child);
-          } ,
+          },
         ),
       ),
     );
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: Text(widget.title),
-    //   ),
-    //   body: ListView.builder(
-    //     itemCount: readFile.length,
-    //     itemBuilder: (BuildContext context, int index) {
-    //       return Container(
-    //         height: 40,
-    //         child: Text(readFile[index][2]),
-    //       );
-    //     },
-    //   )
-    // );
+  }
+}
+
+class MyListItem extends StatelessWidget {
+  var list;
+
+  MyListItem({Key? key, required this.list}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return Container(
+        decoration: BoxDecoration(
+            color: Colors.white30,
+            border: Border.all(color: Colors.black)
+        ),
+        height: 60,
+        child: Row(
+          children: [
+            Container(
+                width: 150,
+                child: Column(
+                  children: [
+                    Container(height: 8),
+                    Row(
+                      children: [
+                        Text(list[0], style: const TextStyle(fontSize: 15)),
+                        Container(width: 20),
+                        Text('LVL:' + list[1],
+                            style: const TextStyle(fontSize: 15))
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(list[2], style: const TextStyle(fontSize: 18))
+                      ],
+                    )
+                  ],
+                )),
+            Container(
+              child: Column(
+                children: [
+                  Container(height: 8),
+                  Text ('HP:'+list[4]),
+                  Text ('MP:'+list[5])
+                ],
+              ),
+            ),
+            Container()
+          ],
+        ));
   }
 }
