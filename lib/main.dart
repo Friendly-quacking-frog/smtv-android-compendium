@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: MyHomePage(title: 'appTitle', storage: DataStorage()));
+        home: MyHomePage(title: 'Demon Compendium', storage: DataStorage()));
   }
 }
 
@@ -61,7 +61,6 @@ class _MyHomePageState extends State<MyHomePage> {
     var temp = [];
     var data = await rootBundle.loadString('assets/data.csv');
     temp = data.split('\n');
-    temp.removeLast();
     var temp2 = [];
     for (int i = 0; i < temp.length; i++) {
       temp2.add(temp[i].split(';'));
@@ -97,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               );
             } else if (snapshot.hasError) {
-              child = Text('Error');
+              child = const Text('Error');
             } else {
               child = Center(
                 child: ListView(children: const [Text("Loading...")]),
@@ -112,23 +111,18 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class MyListItem extends StatelessWidget {
-  var list;
+  var list = [];
 
   MyListItem({Key? key, required this.list}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return Container(
-        decoration: BoxDecoration(
-            color: Colors.white30,
-            border: Border.all(color: Colors.black)
-        ),
-        height: 60,
-        child: Row(
+    return ExpansionTile(
+        title: Row(
           children: [
-            Container(
-                width: 150,
+            SizedBox(
+                width: 175,
                 child: Column(
                   children: [
                     Container(height: 8),
@@ -147,17 +141,131 @@ class MyListItem extends StatelessWidget {
                     )
                   ],
                 )),
-            Container(
-              child: Column(
-                children: [
-                  Container(height: 8),
-                  Text ('HP:'+list[4]),
-                  Text ('MP:'+list[5])
-                ],
-              ),
+            Column(
+              children: [
+                Container(height: 8),
+                Row(
+                  children: [Text('HP:' + list[3])],
+                ),
+                Row(
+                  children: [Text('MP:' + list[4])],
+                )
+              ],
             ),
             Container()
           ],
-        ));
+        ),
+      children: [
+        Row(
+          children: [
+            //stats info
+            Column(
+              children: [
+                Text('STR:'+list[5]),
+                Text('VIT:'+list[6]),
+                Text('MAG:'+list[7]),
+                Text('AGI:'+list[8]),
+                Text('LUK:'+list[9]),
+              ],
+            ),
+            Column(
+              children: [
+                //weakness info
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black)
+                      ),
+                      width: 26,
+                        child: Column(
+                          children: [
+                            Image.asset('assets/icons/phy.png'),
+                            Text(list[10])
+                          ],
+                        )
+                    ),
+                    Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black)
+                        ),
+                        width: 26,
+                        child: Column(
+                          children: [
+                            Image.asset('assets/icons/fir.png'),
+                            Text(list[11])
+                          ],
+                        )
+                    ),
+                    Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black)
+                        ),
+                        width: 26,
+                        child: Column(
+                          children: [
+                            Image.asset('assets/icons/ice.png'),
+                            Text(list[12])
+                          ],
+                        )
+                    ),
+                    Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black)
+                        ),
+                        width: 26,
+                        child: Column(
+                          children: [
+                            Image.asset('assets/icons/ele.png'),
+                            Text(list[13])
+                          ],
+                        )
+                    ),
+                    Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black)
+                        ),
+                        width: 26,
+                        child: Column(
+                          children: [
+                            Image.asset('assets/icons/force.png'),
+                            Text(list[14])
+                          ],
+                        )
+                    ),
+                    Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black)
+                        ),
+                        width: 26,
+                        child: Column(
+                          children: [
+                            Image.asset('assets/icons/lig.png'),
+                            Text(list[15])
+                          ],
+                        )
+                    ),
+                    Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black)
+                        ),
+                        width: 26,
+                        child: Column(
+                          children: [
+                            Image.asset('assets/icons/cur.png'),
+                            Text(list[16])
+                          ],
+                        )
+                    )
+                  ],
+                ),
+                //affinity info
+                Row()
+              ],
+            )
+          ],
+        )
+      ],
+    );
   }
 }
