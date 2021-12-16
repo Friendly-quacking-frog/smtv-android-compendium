@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
@@ -22,6 +21,7 @@ class MyApp extends StatelessWidget {
 }
 
 class DataStorage {
+  //class fo reading file
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
@@ -58,6 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
   late Future<List> readFile;
   late Future<List> skillsList;
 
+  String searchString = '';
+
+  //read stats data file
   Future<List> loadDataAsset() async {
     var temp = [];
     var data = await rootBundle.loadString('assets/data.csv');
@@ -69,6 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return temp2;
   }
 
+  //read skills data file
   Future<List> loadSkillsList() async {
     var temp = [];
     var data = await rootBundle.loadString('assets/pages.csv');
@@ -81,11 +85,11 @@ class _MyHomePageState extends State<MyHomePage> {
         tempList.add(b);
       }
       temp.add(tempList);
-      print('');
     }
     return temp;
   }
 
+  //initialize variables with read data files
   @override
   void initState() {
     super.initState();
@@ -96,39 +100,57 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: FutureBuilder(
-          future: Future.wait([readFile, skillsList]),
-          builder: (
-            BuildContext context,
-            AsyncSnapshot<List> snapshot,
-          ) {
-            Widget child;
-            if (snapshot.hasData) {
-              child = ListView.builder(
-                itemCount: snapshot.data?[0].length,
-                itemBuilder: (BuildContext context, int index) {
-                  return MyListItem(
-                    list: snapshot.data![0][index],
-                    skillsList: snapshot.data![1][index],
-                  );
-                },
-              );
-            } else if (snapshot.hasError) {
-              child = const Text('Error');
-            } else {
-              child = Center(
-                child: ListView(children: const [Text("Loading...")]),
-              );
-            }
-            return Center(child: child);
-          },
+        appBar: AppBar(
+          title: Text(widget.title),
         ),
-      ),
-    );
+        body: Column(
+          children: <Widget>[
+            TextField(
+                onChanged: (value) {
+                  setState(() {
+                    searchString = value.toLowerCase();
+                  });
+                },
+                decoration: InputDecoration(
+                    labelText: "Search",
+                    hintText: "Search",
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.all(Radius.circular(25.0))))),
+            Expanded(
+                child: FutureBuilder(
+                  future: Future.wait([readFile, skillsList]),
+                  builder: (
+                    BuildContext context,
+                    AsyncSnapshot<List> snapshot,
+                  ) {
+                    Widget child;
+                    if (snapshot.hasData) {
+                      child = ListView.builder(
+                          itemCount: snapshot.data?[0].length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return snapshot.data![0][index][2]
+                                    .toLowerCase()
+                                    .contains(searchString)
+                                ? MyListItem(
+                                    list: snapshot.data![0][index],
+                                    skillsList: snapshot.data![1][index],
+                                  )
+                                : Container();
+                          });
+                    } else if (snapshot.hasError) {
+                      child = const Text('Error');
+                    } else {
+                      child = Center(
+                        child: ListView(children: const [Text("Loading...")]),
+                      );
+                    }
+                    return Center(child: child);
+              },
+            ))
+          ],
+        ));
   }
 }
 
@@ -163,8 +185,9 @@ class MyListItem extends StatelessWidget {
   MyListItem({Key? key, required this.list, required this.skillsList})
       : super(key: key);
 
+  //return weakness text with color
   Widget weaknessColoredText(String value) {
-    TextStyle style = new TextStyle();
+    TextStyle style = TextStyle();
     switch (value) {
       case 'rs':
         style = const TextStyle(color: Colors.teal);
@@ -187,6 +210,7 @@ class MyListItem extends StatelessWidget {
     return Text(value, style: style);
   }
 
+  //initialize lists of widgets
   void initState() {
     for (int i = 0; i < weaknessIcons.length; i++) {
       weaknessElementList.add(Container(
@@ -334,7 +358,7 @@ class DetailedPage extends StatelessWidget {
   var skillsList = [];
 
   Widget weaknessColoredText(String value) {
-    TextStyle style = new TextStyle();
+    TextStyle style = TextStyle();
     switch (value) {
       case 'rs':
         style = const TextStyle(color: Colors.teal);
@@ -357,6 +381,7 @@ class DetailedPage extends StatelessWidget {
     return Text(value, style: style);
   }
 
+  //initialize variables
   void initState() {
     skillsList.removeLast();
     for (int i = 0; i < weaknessIcons.length; i++) {
@@ -388,10 +413,10 @@ class DetailedPage extends StatelessWidget {
             ],
           )));
     }
-    for (int i=0; i<skillsList.length; i++){
+    for (int i = 0; i < skillsList.length; i++) {
       List<Widget> temp = [];
-      temp.add(Image.asset('assets/icons/'+skillsList[i][0]+'.png'));
-      for (int j=1; j<skillsList[i].length; j++){
+      temp.add(Image.asset('assets/icons/' + skillsList[i][0] + '.png'));
+      for (int j = 1; j < skillsList[i].length; j++) {
         temp.add(Text(skillsList[i][j]));
         temp.add(Container(width: 2));
       }
@@ -403,100 +428,115 @@ class DetailedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     initState();
-    return Scaffold(
-        appBar: AppBar(title: const Text('Detailed Data')),
-        body: Center(
-            child: Column(
-              children: [
-                Container(height: 30),
-                Text(list[2], style: const TextStyle(fontSize: 35)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Race: ' + list[0]),
-                    Container(width: 10),
-                    Text('LVL: ' + list[1]),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('HP: '+list[3]),
-                    Container(width: 20),
-                    Text('MP: '+list[4])
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('STR:' + list[5]),
-                    Container(width: 5),
-                    Text('VIT:' + list[6]),
-                    Container(width: 5),
-                    Text('MAG:' + list[7])
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('AGI:' + list[8]),
-                    Container(width: 5),
-                    Text('LUK:' + list[9])
-                  ],
-                ),
-                Column(
-                  children: [
-                    const Text('Element weakness', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: weaknessElementList,
-                    )
-                  ],
-                ),
-                Column(
-                  children: [
-                    const Text('Skill affinity', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: affinityElementList,
-                    )
-                  ],
-                ),
-                Column(
-                  children: [
-                    const Text('Ailment weakness', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: weaknessAilmentList,
-                    )
-                  ],
-                ),
-                Center(
-                  child: ListView.builder(
-                    itemCount: skillsList.length,
-                    shrinkWrap: true,
-                    itemBuilder: (BuildContext context, int index){
-                      return ExpansionTile(
-                          title: Row(
-                            children: [
-                              skillInfo[index][0],
-                              skillInfo[index][1],
-                              skillInfo[index][2],
-                              skillInfo[index][3]
-                            ],
-                          ),
-                          children: [
-                            skillInfo[index][5],
-                            skillInfo[index][6],
-                            skillInfo[index][7],
-                          ],
-
-                      );
-                    }
-                ))
-
-
-          ],
-        )));
+    return DefaultTabController(
+        length: 3,
+        child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Detailed Data'),
+              bottom: const TabBar(
+                tabs: [
+                  Tab(icon: Icon(Icons.format_list_bulleted)),
+                  Tab(icon: Icon(Icons.call_merge)),
+                  Tab(icon: Icon(Icons.call_split))
+                ],
+              ),
+            ),
+            body: TabBarView(children: [
+              Center(
+                  child: Column(
+                children: [
+                  Container(height: 30),
+                  Text(list[2], style: const TextStyle(fontSize: 35)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Race: ' + list[0]),
+                      Container(width: 10),
+                      Text('LVL: ' + list[1]),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('HP: ' + list[3]),
+                      Container(width: 20),
+                      Text('MP: ' + list[4])
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('STR:' + list[5]),
+                      Container(width: 5),
+                      Text('VIT:' + list[6]),
+                      Container(width: 5),
+                      Text('MAG:' + list[7])
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('AGI:' + list[8]),
+                      Container(width: 5),
+                      Text('LUK:' + list[9])
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      const Text('Element weakness',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: weaknessElementList,
+                      )
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      const Text('Skill affinity',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: affinityElementList,
+                      )
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      const Text('Ailment weakness',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: weaknessAilmentList,
+                      )
+                    ],
+                  ),
+                  Expanded(
+                      child: ListView.separated(
+                          itemCount: skillsList.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return ExpansionTile(
+                              title: Row(
+                                children: [
+                                  skillInfo[index][0],
+                                  skillInfo[index][1],
+                                  skillInfo[index][2],
+                                  skillInfo[index][3]
+                                ],
+                              ),
+                              children: [
+                                skillInfo[index][5],
+                                skillInfo[index][6],
+                                skillInfo[index][7],
+                              ],
+                            );
+                          },
+                          separatorBuilder: (BuildContext context, int index) =>
+                              Divider()))
+                ],
+              )),
+              Center(child: Text('Possible fissions')),
+              Center(child: Text('Possible fusions'))
+            ])));
   }
 }
