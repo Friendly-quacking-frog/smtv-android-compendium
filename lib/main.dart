@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 List<List<String>> data = [];
@@ -15,38 +14,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: MyHomePage(title: 'Demon Compendium', storage: DataStorage()));
-  }
-}
-
-class DataStorage {
-  //class fo reading file
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  Future<File> get _localFile async {
-    final path = await _localPath;
-    return File('$path/data.csv');
-  }
-
-  Future<String> readCounter() async {
-    try {
-      final file = await _localFile;
-      final contents = await file.readAsString();
-      return contents;
-    } catch (e) {
-      return '';
-    }
+    return MaterialApp(home: MyHomePage(title: 'Demon Compendium'));
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title, required this.storage})
-      : super(key: key);
-  final DataStorage storage;
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -54,14 +27,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<String> names = <String>['Entry A', 'Entry B', 'Entry C', 'nothing'];
-  late Future<List> readFile;
-  late Future<List> skillsList;
+  late Future<List> statsData;
+  late Future<List> skillsData;
+  late Future<List> fusionData;
 
   String searchString = '';
 
   //read stats data file
-  Future<List> loadDataAsset() async {
+  Future<List> loadStatsData() async {
     var temp = [];
     var data = await rootBundle.loadString('assets/data.csv');
     temp = data.split('\n');
@@ -74,27 +47,44 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //read skills data file
   Future<List> loadSkillsList() async {
-    var temp = [];
-    var data = await rootBundle.loadString('assets/pages.csv');
-    var temp2 = data.split('\n');
-    for (int i = 0; i < temp2.length; i++) {
+    var data = [];
+    var fileData = await rootBundle.loadString('assets/pages.csv');
+    var readData = fileData.split('\n');
+    for (int i = 0; i < readData.length; i++) {
       var tempList = [];
-      var a = temp2[i].split(';');
+      var a = readData[i].split(';');
       for (int j = 0; j < a.length; j++) {
         var b = a[j].split(':');
         tempList.add(b);
       }
-      temp.add(tempList);
+      data.add(tempList);
     }
-    return temp;
+    return data;
+  }
+
+  Future<List> loadFusionData() async {
+    var data = [];
+    var fileData = await rootBundle.loadString('assets/fusionRecipes.csv');
+    var readData = fileData.split('\n');
+    for (int i = 0; i < readData.length; i++) {
+      var tempList = [];
+      var a = readData[i].split(';');
+      for (int j = 0; j < a.length; j++) {
+        var b = a[j].split(':');
+        tempList.add(b);
+      }
+      data.add(tempList);
+    }
+    return data;
   }
 
   //initialize variables with read data files
   @override
   void initState() {
     super.initState();
-    readFile = loadDataAsset();
-    skillsList = loadSkillsList();
+    statsData = loadStatsData();
+    skillsData = loadSkillsList();
+    fusionData = loadFusionData();
   }
 
   @override
@@ -120,33 +110,34 @@ class _MyHomePageState extends State<MyHomePage> {
                             BorderRadius.all(Radius.circular(25.0))))),
             Expanded(
                 child: FutureBuilder(
-                  future: Future.wait([readFile, skillsList]),
-                  builder: (
-                    BuildContext context,
-                    AsyncSnapshot<List> snapshot,
-                  ) {
-                    Widget child;
-                    if (snapshot.hasData) {
-                      child = ListView.builder(
-                          itemCount: snapshot.data?[0].length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return snapshot.data![0][index][2]
-                                    .toLowerCase()
-                                    .contains(searchString)
-                                ? MyListItem(
-                                    list: snapshot.data![0][index],
-                                    skillsList: snapshot.data![1][index],
-                                  )
-                                : Container();
-                          });
-                    } else if (snapshot.hasError) {
-                      child = const Text('Error');
-                    } else {
-                      child = Center(
-                        child: ListView(children: const [Text("Loading...")]),
-                      );
-                    }
-                    return Center(child: child);
+              future: Future.wait([statsData, skillsData, fusionData]),
+              builder: (
+                BuildContext context,
+                AsyncSnapshot<List> snapshot,
+              ) {
+                Widget child;
+                if (snapshot.hasData) {
+                  child = ListView.builder(
+                      itemCount: snapshot.data?[0].length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return snapshot.data![0][index][2]
+                                .toLowerCase()
+                                .contains(searchString)
+                            ? MyListItem(
+                                list: snapshot.data![0][index],
+                                skillsList: snapshot.data![1][index],
+                                fusionData: snapshot.data![2][index],
+                              )
+                            : Container();
+                      });
+                } else if (snapshot.hasError) {
+                  child = const Text('Error');
+                } else {
+                  child = Center(
+                    child: ListView(children: const [Text("Loading...")]),
+                  );
+                }
+                return Center(child: child);
               },
             ))
           ],
@@ -155,8 +146,16 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class MyListItem extends StatelessWidget {
+  MyListItem(
+      {Key? key,
+      required this.list,
+      required this.skillsList,
+      required this.fusionData})
+      : super(key: key);
+
   var list = [];
   var skillsList = [];
+  var fusionData = [];
   List<Widget> weaknessElementList = [];
   var weaknessIcons = [
     'assets/icons/phy.png',
@@ -181,9 +180,6 @@ class MyListItem extends StatelessWidget {
     'assets/icons/rec.png',
     'assets/icons/sup.png',
   ];
-
-  MyListItem({Key? key, required this.list, required this.skillsList})
-      : super(key: key);
 
   //return weakness text with color
   Widget weaknessColoredText(String value) {
@@ -309,8 +305,9 @@ class MyListItem extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                               builder: (context) => DetailedPage(
-                                    list: list,
-                                    skillsList: skillsList,
+                                    statsData: list,
+                                    skillsData: skillsList,
+                                    fusionData: fusionData,
                                   )));
                     },
                     icon: const Icon(Icons.arrow_forward_ios)),
@@ -324,13 +321,20 @@ class MyListItem extends StatelessWidget {
 }
 
 class DetailedPage extends StatelessWidget {
-  DetailedPage({Key? key, required this.list, required this.skillsList})
+  DetailedPage(
+      {Key? key,
+      required this.statsData,
+      required this.skillsData,
+      required this.fusionData})
       : super(key: key);
 
   List<Widget> weaknessElementList = [];
   List<Widget> affinityElementList = [];
   List<Widget> weaknessAilmentList = [];
   List<List<Widget>> skillInfo = [];
+  String fissionSearch = '';
+  String fusionSearch = '';
+
   var affinityIcons = [
     'assets/icons/phy.png',
     'assets/icons/fir.png',
@@ -354,8 +358,9 @@ class DetailedPage extends StatelessWidget {
     'assets/icons/cur.png',
   ];
   var ailmentNames = ['Charm', 'Seal', 'Panic', 'Poison', 'Sleep', 'Mirage'];
-  var list = [];
-  var skillsList = [];
+  var statsData = [];
+  var skillsData = [];
+  var fusionData = [];
 
   Widget weaknessColoredText(String value) {
     TextStyle style = TextStyle();
@@ -383,7 +388,7 @@ class DetailedPage extends StatelessWidget {
 
   //initialize variables
   void initState() {
-    skillsList.removeLast();
+    skillsData.removeLast();
     for (int i = 0; i < weaknessIcons.length; i++) {
       weaknessElementList.add(Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black)),
@@ -391,7 +396,7 @@ class DetailedPage extends StatelessWidget {
           child: Column(
             children: [
               Image.asset(weaknessIcons[i]),
-              weaknessColoredText(list[i + 10])
+              weaknessColoredText(statsData[i + 10])
             ],
           )));
     }
@@ -400,7 +405,7 @@ class DetailedPage extends StatelessWidget {
           decoration: BoxDecoration(border: Border.all(color: Colors.black)),
           width: 26,
           child: Column(
-            children: [Image.asset(affinityIcons[i]), Text(list[i + 17])],
+            children: [Image.asset(affinityIcons[i]), Text(statsData[i + 17])],
           )));
     }
     for (int i = 0; i < 6; i++) {
@@ -409,15 +414,15 @@ class DetailedPage extends StatelessWidget {
           child: Column(
             children: [
               Text(ailmentNames[i]),
-              weaknessColoredText(list[i + 27])
+              weaknessColoredText(statsData[i + 27])
             ],
           )));
     }
-    for (int i = 0; i < skillsList.length; i++) {
+    for (int i = 0; i < skillsData.length; i++) {
       List<Widget> temp = [];
-      temp.add(Image.asset('assets/icons/' + skillsList[i][0] + '.png'));
-      for (int j = 1; j < skillsList[i].length; j++) {
-        temp.add(Text(skillsList[i][j]));
+      temp.add(Image.asset('assets/icons/' + skillsData[i][0] + '.png'));
+      for (int j = 1; j < skillsData[i].length; j++) {
+        temp.add(Text(skillsData[i][j]));
         temp.add(Container(width: 2));
       }
       temp.removeLast();
@@ -446,39 +451,39 @@ class DetailedPage extends StatelessWidget {
                   child: Column(
                 children: [
                   Container(height: 30),
-                  Text(list[2], style: const TextStyle(fontSize: 35)),
+                  Text(statsData[2], style: const TextStyle(fontSize: 35)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Race: ' + list[0]),
+                      Text('Race: ' + statsData[0]),
                       Container(width: 10),
-                      Text('LVL: ' + list[1]),
+                      Text('LVL: ' + statsData[1]),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('HP: ' + list[3]),
+                      Text('HP: ' + statsData[3]),
                       Container(width: 20),
-                      Text('MP: ' + list[4])
+                      Text('MP: ' + statsData[4])
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('STR:' + list[5]),
+                      Text('STR:' + statsData[5]),
                       Container(width: 5),
-                      Text('VIT:' + list[6]),
+                      Text('VIT:' + statsData[6]),
                       Container(width: 5),
-                      Text('MAG:' + list[7])
+                      Text('MAG:' + statsData[7])
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('AGI:' + list[8]),
+                      Text('AGI:' + statsData[8]),
                       Container(width: 5),
-                      Text('LUK:' + list[9])
+                      Text('LUK:' + statsData[9])
                     ],
                   ),
                   Column(
@@ -513,7 +518,7 @@ class DetailedPage extends StatelessWidget {
                   ),
                   Expanded(
                       child: ListView.separated(
-                          itemCount: skillsList.length,
+                          itemCount: skillsData.length,
                           itemBuilder: (BuildContext context, int index) {
                             return ExpansionTile(
                               title: Row(
@@ -536,7 +541,60 @@ class DetailedPage extends StatelessWidget {
                 ],
               )),
               Center(child: Text('Possible fissions')),
-              Center(child: Text('Possible fusions'))
+              Column(
+                children: [
+                  Row(
+                      children: [
+                        const Text('Cost'),
+                        Container(width: 70),
+                        const Text('Ingredient 2:'),
+                        Container(width: 120),
+                        const Text('Result')
+                      ],
+                  ),
+                  Divider(
+                    thickness: 5
+                  ),
+                  Expanded(
+                      child: ListView.separated(
+                          itemCount: fusionData.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return Row(
+                              children: <Widget>[
+                                Column(
+                                  children: [
+                                    Text(fusionData[index][0]),
+                                    Container(height: 5),
+                                    const Text('Macca')
+                                  ],
+                                ),
+                                Container(width: 15),
+                                Container(
+                                  width: 145,
+                                  child: Column(
+                                    children: [
+                                      Text(fusionData[index][1] + ' LVL: '+ fusionData[index][2]),
+                                      Container(height: 5),
+                                      Text(fusionData[index][3] + ' ')
+                                    ],
+                                  ),
+                                ),
+                                Container(width: 50),
+                                Expanded(
+                                  child: Column(
+                                    children: [
+                                      Text(fusionData[index][4] + ' LVL: '+ fusionData[index][5]),
+                                      Container(height: 5),
+                                      Text(fusionData[index][6] + ' ')
+                                    ],
+                                  ),
+                                )
+                              ],
+                            );
+                          }, separatorBuilder: (BuildContext context, int index) => Divider())
+                  )
+                ],
+              )
             ])));
   }
 }
