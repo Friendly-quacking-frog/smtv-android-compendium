@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -14,7 +14,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: MyHomePage(title: 'Demon Compendium'));
+    return MaterialApp(
+        home: MyHomePage(title: 'Demon Compendium'),
+        theme: ThemeData.dark()
+    );
   }
 }
 
@@ -30,6 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late Future<List> statsData;
   late Future<List> skillsData;
   late Future<List> fusionData;
+  late Future<List> fissionData;
 
   String searchString = '';
 
@@ -62,11 +66,29 @@ class _MyHomePageState extends State<MyHomePage> {
     return data;
   }
 
+  //read fusion data file
   Future<List> loadFusionData() async {
     var data = [];
     var fileData = await rootBundle.loadString('assets/fusionRecipes.csv');
     var readData = fileData.split('\n');
     for (int i = 0; i < readData.length; i++) {
+      var tempList = [];
+      var a = readData[i].split(';');
+      for (int j = 0; j < a.length; j++) {
+        var b = a[j].split(':');
+        tempList.add(b);
+      }
+      data.add(tempList);
+    }
+    return data;
+  }
+
+  //read reverse fusion data file
+  Future<List> loadFissionData() async {
+    var data = [];
+    var fileData = await rootBundle.loadString('assets/fissionRecipes.csv');
+    var readData = fileData.split('\n');
+    for (int i=0; i<readData.length; i++){
       var tempList = [];
       var a = readData[i].split(';');
       for (int j = 0; j < a.length; j++) {
@@ -85,6 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
     statsData = loadStatsData();
     skillsData = loadSkillsList();
     fusionData = loadFusionData();
+    fissionData = loadFissionData();
   }
 
   @override
@@ -110,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             BorderRadius.all(Radius.circular(25.0))))),
             Expanded(
                 child: FutureBuilder(
-              future: Future.wait([statsData, skillsData, fusionData]),
+              future: Future.wait([statsData, skillsData, fusionData, fissionData]),
               builder: (
                 BuildContext context,
                 AsyncSnapshot<List> snapshot,
@@ -127,6 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 list: snapshot.data![0][index],
                                 skillsList: snapshot.data![1][index],
                                 fusionData: snapshot.data![2][index],
+                                fissionData: snapshot.data![3][index],
                               )
                             : Container();
                       });
@@ -150,12 +174,14 @@ class MyListItem extends StatelessWidget {
       {Key? key,
       required this.list,
       required this.skillsList,
-      required this.fusionData})
+      required this.fusionData,
+      required this.fissionData})
       : super(key: key);
 
   var list = [];
   var skillsList = [];
   var fusionData = [];
+  var fissionData = [];
   List<Widget> weaknessElementList = [];
   var weaknessIcons = [
     'assets/icons/phy.png',
@@ -180,7 +206,23 @@ class MyListItem extends StatelessWidget {
     'assets/icons/rec.png',
     'assets/icons/sup.png',
   ];
-
+  var affinityColors = [
+    Colors.black,
+    Color(0xff7cfc00),
+    Color(0xff00ff00),
+    Color(0xff00ff7f),
+    Color(0xff00fa9a),
+    Color(0xff32cd32),
+    Color(0xff3cb371),
+    Color(0xff2e8b57),
+    Color(0xffff4500),
+    Color(0xffff6347),
+    Color(0xffFF7F50),
+    Color(0xffff8c00),
+    Colors.orange,
+    Color(0xffffa07a),
+    Color(0xffFFD700),
+  ];
   //return weakness text with color
   Widget weaknessColoredText(String value) {
     TextStyle style = TextStyle();
@@ -189,7 +231,7 @@ class MyListItem extends StatelessWidget {
         style = const TextStyle(color: Colors.teal);
         break;
       case 'nu':
-        style = const TextStyle(color: Colors.black);
+        style = const TextStyle(color: Colors.white);
         break;
       case 'wk':
         style = const TextStyle(color: Colors.redAccent);
@@ -204,6 +246,15 @@ class MyListItem extends StatelessWidget {
         return const Text('');
     }
     return Text(value, style: style);
+  }
+
+  Widget affinityColoredText(String value){
+    var num = int.parse(value);
+    if (num==0) return const Text('');
+    else {
+      return num > 0 ? Text(value, style: TextStyle(color: affinityColors[num]))
+      :Text(value, style: TextStyle(color: affinityColors[15+num]));
+    }
   }
 
   //initialize lists of widgets
@@ -224,7 +275,10 @@ class MyListItem extends StatelessWidget {
           decoration: BoxDecoration(border: Border.all(color: Colors.black)),
           width: 26,
           child: Column(
-            children: [Image.asset(affinityIcons[i]), Text(list[i + 17])],
+            children: [
+              Image.asset(affinityIcons[i]),
+              affinityColoredText(list[i + 17])
+            ],
           )));
     }
   }
@@ -273,14 +327,17 @@ class MyListItem extends StatelessWidget {
         Row(
           children: [
             //stats info
-            Column(
-              children: [
-                Text('STR:' + list[5]),
-                Text('VIT:' + list[6]),
-                Text('MAG:' + list[7]),
-                Text('AGI:' + list[8]),
-                Text('LUK:' + list[9]),
-              ],
+            Container(
+              width: 75,
+              child: Column(
+                children: [
+                  Text('STR:' + list[5], style: GoogleFonts.lato()),
+                  Text('VIT:' + list[6], style: GoogleFonts.lato()),
+                  Text('MAG:' + list[7], style: GoogleFonts.lato()),
+                  Text('AGI:' + list[8], style: GoogleFonts.lato()),
+                  Text('LUK:' + list[9], style: GoogleFonts.lato()),
+                ],
+              )
             ),
             Column(
               children: [
@@ -308,6 +365,7 @@ class MyListItem extends StatelessWidget {
                                     statsData: list,
                                     skillsData: skillsList,
                                     fusionData: fusionData,
+                                    fissionData: fissionData,
                                   )));
                     },
                     icon: const Icon(Icons.arrow_forward_ios)),
@@ -325,7 +383,8 @@ class DetailedPage extends StatelessWidget {
       {Key? key,
       required this.statsData,
       required this.skillsData,
-      required this.fusionData})
+      required this.fusionData,
+      required this.fissionData})
       : super(key: key);
 
   List<Widget> weaknessElementList = [];
@@ -357,10 +416,28 @@ class DetailedPage extends StatelessWidget {
     'assets/icons/lig.png',
     'assets/icons/cur.png',
   ];
+  var affinityColors = [
+    Colors.black,
+    Color(0xff7cfc00),
+    Color(0xff00ff00),
+    Color(0xff00ff7f),
+    Color(0xff00fa9a),
+    Color(0xff32cd32),
+    Color(0xff3cb371),
+    Color(0xff2e8b57),
+    Color(0xffff4500),
+    Color(0xffff6347),
+    Color(0xffFF7F50),
+    Color(0xffff8c00),
+    Colors.orange,
+    Color(0xffffa07a),
+    Color(0xffFFD700),
+  ];
   var ailmentNames = ['Charm', 'Seal', 'Panic', 'Poison', 'Sleep', 'Mirage'];
   var statsData = [];
   var skillsData = [];
   var fusionData = [];
+  var fissionData = [];
 
   Widget weaknessColoredText(String value) {
     TextStyle style = TextStyle();
@@ -369,7 +446,7 @@ class DetailedPage extends StatelessWidget {
         style = const TextStyle(color: Colors.teal);
         break;
       case 'nu':
-        style = const TextStyle(color: Colors.black);
+        style = const TextStyle(color: Colors.white);
         break;
       case 'wk':
         style = const TextStyle(color: Colors.redAccent);
@@ -386,9 +463,20 @@ class DetailedPage extends StatelessWidget {
     return Text(value, style: style);
   }
 
+  Widget affinityColoredText(String value){
+    var num = int.parse(value);
+    if (num==0) return const Text('');
+    else {
+      return num > 0 ? Text(value, style: TextStyle(color: affinityColors[num]))
+          :Text(value, style: TextStyle(color: affinityColors[15+num]));
+    }
+  }
+
   //initialize variables
   void initState() {
     skillsData.removeLast();
+    //make list of containers with element weaknesses
+    //start at index 10
     for (int i = 0; i < weaknessIcons.length; i++) {
       weaknessElementList.add(Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black)),
@@ -400,21 +488,25 @@ class DetailedPage extends StatelessWidget {
             ],
           )));
     }
+    //make list of containers with skill affinities
+    //they start from index 17
     for (int i = 0; i < affinityIcons.length; i++) {
       affinityElementList.add(Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black)),
           width: 26,
           child: Column(
-            children: [Image.asset(affinityIcons[i]), Text(statsData[i + 17])],
+            children: [Image.asset(affinityIcons[i]), affinityColoredText(statsData[i + 17])],
           )));
     }
+    //make list of containers with ailment information
+    //they start from index 28
     for (int i = 0; i < 6; i++) {
       weaknessAilmentList.add(Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black)),
           child: Column(
             children: [
               Text(ailmentNames[i]),
-              weaknessColoredText(statsData[i + 27])
+              weaknessColoredText(statsData[i + 28])
             ],
           )));
     }
@@ -540,7 +632,103 @@ class DetailedPage extends StatelessWidget {
                               Divider()))
                 ],
               )),
-              Center(child: Text('Possible fissions')),
+              fissionData[0][0]=='normal'?Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Text('Cost'),
+                        Container(width: 70),
+                        const Text('Ingredient 1:'),
+                        Container(width: 120),
+                        const Text('Ingredient 2:')
+                      ],
+                    ),
+                    Divider(
+                        thickness: 5
+                    ),
+                    Expanded(
+                        child: ListView.separated(
+                            itemCount: fissionData.length-1,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Row(
+                                children: <Widget>[
+                                  Column(
+                                    children: [
+                                      Text(fissionData[index+1][0]),
+                                      Container(height: 5),
+                                      const Text('Macca')
+                                    ],
+                                  ),
+                                  Container(width: 15),
+                                  Container(
+                                    width: 145,
+                                    child: Column(
+                                      children: [
+                                        Text(fissionData[index+1][1] + ' LVL: '+ fissionData[index+1][2]),
+                                        Container(height: 5),
+                                        Text(fissionData[index+1][3] + ' ')
+                                      ],
+                                    ),
+                                  ),
+                                  Container(width: 50),
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        Text(fissionData[index+1][4] + ' LVL: '+ fissionData[index+1][5]),
+                                        Container(height: 5),
+                                        Text(fissionData[index+1][6] + ' ')
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              );
+                            }, separatorBuilder: (BuildContext context, int index) => Divider())
+                    )
+                  ]
+              ):
+                Column(
+                  children: [
+                    Text('Special Fusion Recipe'),
+                    Row(
+                      children: [
+                        const Text('Cost'),
+                        Container(width: 70),
+                        const Text('Ingredient')
+                      ],
+                    ),
+                    Divider(
+                        thickness: 5
+                    ),
+                    Expanded(
+                        child: ListView.separated(
+                            itemCount: fissionData.length-1,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Row(
+                                children: <Widget>[
+                                  Column(
+                                    children: [
+                                      Text(fissionData[index+1][0]),
+                                      Container(height: 5),
+                                      const Text('Macca')
+                                    ],
+                                  ),
+                                  Container(width: 15),
+                                  Container(
+                                    width: 145,
+                                    child: Column(
+                                      children: [
+                                        Text(fissionData[index+1][1] + ' LVL: '+ fissionData[index+1][2]),
+                                        Container(height: 5),
+                                        Text(fissionData[index+1][3] + ' ')
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              );
+                            }, separatorBuilder: (BuildContext context, int index) => Divider())
+                    )
+                  ],
+                ),
               Column(
                 children: [
                   Row(
