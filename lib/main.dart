@@ -118,6 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         body: Column(
           children: <Widget>[
+            Container(height: 2),
             TextField(
                 onChanged: (value) {
                   setState(() {
@@ -165,7 +166,32 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ))
           ],
-        ));
+        ),
+        drawer: Drawer(
+          child: ListView(
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(
+                    color: Colors.orange
+                ),
+                child: Text('Header')
+              ),
+              ListTile(
+                title: const Text('Item 1'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Item 2'),
+                onTap: () {
+                  Navigator.pop(context);
+                }
+              ),
+            ],
+          ),
+        ),
+    );
   }
 }
 
@@ -368,7 +394,8 @@ class MyListItem extends StatelessWidget {
                                     fissionData: fissionData,
                                   )));
                     },
-                    icon: const Icon(Icons.arrow_forward_ios)),
+                    icon: const Icon(Icons.arrow_forward_ios)
+                ),
               ],
             )
           ],
@@ -783,6 +810,8 @@ class DetailedPage extends StatelessWidget {
                   )
                 ],
               )
-            ])));
+            ]),
+        )
+    );
   }
 }
