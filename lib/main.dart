@@ -565,22 +565,19 @@ class MyListItem extends StatelessWidget {
                 Row(children: affinityElementList)
               ],
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => DetailedPage(
-                                    storage: storage,
-                                    ind: givenIndex,
-                                  )));
-                    },
-                    icon: const Icon(Icons.arrow_forward_ios)
-                ),
-              ],
+            Expanded(
+              child: IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DetailedPage(
+                              storage: storage,
+                              ind: givenIndex,
+                            )));
+                  },
+                  icon: const Icon(Icons.arrow_forward_ios)
+              ),
             )
           ],
         )
