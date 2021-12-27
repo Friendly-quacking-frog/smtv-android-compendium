@@ -42,6 +42,7 @@ class Storage {
   List _fissionList = [];
   late Future<List> futureFusionList;
   List _fusionList = [];
+  Set<String> races = {};
 
   var affinityColors = [
     Colors.black,
@@ -91,6 +92,7 @@ class Storage {
     var temp2 = [];
     for (int i = 0; i < temp.length; i++) {
       temp2.add(temp[i].split(';'));
+      races.add(temp[i].split(';')[0]);
     }
     return temp2;
   }
@@ -265,7 +267,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             IconButton(
                 onPressed: (){},
-                icon: Icon(Icons.filter)
+                icon: const Icon(Icons.sort)
             )
           ],
         ),
@@ -342,83 +344,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class SkillsList extends StatefulWidget{
-  SkillsList({Key? key, required this.storage}) : super(key: key);
-
-  Storage storage;
-
-  @override
-  State<StatefulWidget> createState() => _SkillsList(storage: storage);
-}
-
-class _SkillsList extends State<SkillsList>{
-  _SkillsList({Key? key, required this.storage});
-
-  Storage storage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Skills'),
-      ),
-      body: FutureBuilder(
-        future: storage.futureStatsList,
-        builder: (
-            BuildContext context,
-            AsyncSnapshot<List> snapshot,
-        ) {
-          if (snapshot.hasData){
-            return Column(
-              children: [
-                Text(storage.statsList[storage.indexFromName('Shiisaa')].toString())
-              ],
-            );
-          } else if (snapshot.hasError){
-            return Text("Error");
-          } else {
-            return Text("Loading...");
-          }
-        },
-      ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const DrawerHeader(
-                decoration: BoxDecoration(
-                    color: Colors.orange
-                ),
-                child: Text('Demon compendium')
-            ),
-            ListTile(
-              title: const Text('Stats'),
-              onTap: () {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(
-                        builder: (context) => MyHomePage(storage: storage)
-                    )
-                );
-              },
-            ),
-            ListTile(
-              title: const Text('Skills'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-}
-
 class MyListItem extends StatelessWidget {
   MyListItem(
       {Key? key,
-      required this.storage,
-      required this.givenIndex})
+        required this.storage,
+        required this.givenIndex})
       : super(key: key);
 
   Storage storage;
@@ -427,13 +357,13 @@ class MyListItem extends StatelessWidget {
   List<Widget> weaknessElementList = [];
   List<Widget> affinityElementList = [];
 
-  var weaknessIcons;
-  var affinityIcons;
-  var affinityColors;
+  List<String> weaknessIcons = [];
+  List<String> affinityIcons = [];
+  List<Color> affinityColors = [];
 
   //return weakness text with color
   Widget weaknessColoredText(String value) {
-    TextStyle style = TextStyle();
+    TextStyle style = const TextStyle();
     switch (value) {
       case 'rs':
         style = const TextStyle(color: Colors.teal);
@@ -458,10 +388,11 @@ class MyListItem extends StatelessWidget {
 
   Widget affinityColoredText(String value){
     var num = int.parse(value);
-    if (num==0) return const Text('');
-    else {
+    if (num==0) {
+      return const Text('');
+    } else {
       return num > 0 ? Text(value, style: TextStyle(color: affinityColors[num]))
-      :Text(value, style: TextStyle(color: affinityColors[15+num]));
+          :Text(value, style: TextStyle(color: affinityColors[15+num]));
     }
   }
 
@@ -539,17 +470,17 @@ class MyListItem extends StatelessWidget {
         Row(
           children: [
             //stats info
-            Container(
-              width: 75,
-              child: Column(
-                children: [
-                  Text('STR:' + storage.statsList[givenIndex][5], style: GoogleFonts.lato()),
-                  Text('VIT:' + storage.statsList[givenIndex][6], style: GoogleFonts.lato()),
-                  Text('MAG:' + storage.statsList[givenIndex][7], style: GoogleFonts.lato()),
-                  Text('AGI:' + storage.statsList[givenIndex][8], style: GoogleFonts.lato()),
-                  Text('LUK:' + storage.statsList[givenIndex][9], style: GoogleFonts.lato()),
-                ],
-              )
+            SizedBox(
+                width: 75,
+                child: Column(
+                  children: [
+                    Text('STR:' + storage.statsList[givenIndex][5], style: GoogleFonts.lato()),
+                    Text('VIT:' + storage.statsList[givenIndex][6], style: GoogleFonts.lato()),
+                    Text('MAG:' + storage.statsList[givenIndex][7], style: GoogleFonts.lato()),
+                    Text('AGI:' + storage.statsList[givenIndex][8], style: GoogleFonts.lato()),
+                    Text('LUK:' + storage.statsList[givenIndex][9], style: GoogleFonts.lato()),
+                  ],
+                )
             ),
             Column(
               children: [
@@ -589,8 +520,8 @@ class MyListItem extends StatelessWidget {
 class DetailedPage extends StatelessWidget {
   DetailedPage(
       {Key? key,
-      required this.storage,
-      required this.ind})
+        required this.storage,
+        required this.ind})
       : super(key: key);
 
   Storage storage;
@@ -613,7 +544,7 @@ class DetailedPage extends StatelessWidget {
 
 
   Widget weaknessColoredText(String value) {
-    TextStyle style = TextStyle();
+    TextStyle style = const TextStyle();
     switch (value) {
       case 'rs':
         style = const TextStyle(color: Colors.teal);
@@ -638,23 +569,14 @@ class DetailedPage extends StatelessWidget {
 
   Widget affinityColoredText(String value){
     var num = int.parse(value);
-    if (num==0) return const Text('');
-    else {
+    if (num==0) {
+      return const Text('');
+    } else {
       return num > 0 ? Text(value, style: TextStyle(color: affinityColors[num]))
           :Text(value, style: TextStyle(color: affinityColors[15+num]));
     }
   }
 
-  void _showToast(BuildContext context, String name) {
-    final scaffold = ScaffoldMessenger.of(context);
-    int index = storage.indexFromName(name);
-    scaffold.showSnackBar(
-      SnackBar(
-        content: Text(storage.statsList[index][2]),
-        action: SnackBarAction(label: 'UNDO', onPressed: scaffold.hideCurrentSnackBar),
-      ),
-    );
-  }
   //initialize variables
   void initState() {
     statsData = storage.statsList[ind];
@@ -717,161 +639,161 @@ class DetailedPage extends StatelessWidget {
     return DefaultTabController(
         length: 3,
         child: Scaffold(
-            appBar: AppBar(
-              title: const Text('Detailed Data'),
-              bottom: const TabBar(
-                tabs: [
-                  Tab(icon: Icon(Icons.format_list_bulleted)),
-                  Tab(icon: Icon(Icons.call_merge)),
-                  Tab(icon: Icon(Icons.call_split))
-                ],
-              ),
+          appBar: AppBar(
+            title: const Text('Detailed Data'),
+            bottom: const TabBar(
+              tabs: [
+                Tab(icon: Icon(Icons.format_list_bulleted)),
+                Tab(icon: Icon(Icons.call_merge)),
+                Tab(icon: Icon(Icons.call_split))
+              ],
             ),
-            body: TabBarView(children: [
-              Center(
-                  child: Column(
-                children: [
-                  Container(height: 30),
-                  Text(statsData[2], style: const TextStyle(fontSize: 35)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Race: ' + statsData[0]),
-                      Container(width: 10),
-                      Text('LVL: ' + statsData[1]),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('HP: ' + statsData[3]),
-                      Container(width: 20),
-                      Text('MP: ' + statsData[4])
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('STR:' + statsData[5]),
-                      Container(width: 5),
-                      Text('VIT:' + statsData[6]),
-                      Container(width: 5),
-                      Text('MAG:' + statsData[7])
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('AGI:' + statsData[8]),
-                      Container(width: 5),
-                      Text('LUK:' + statsData[9])
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      const Text('Element weakness',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: weaknessElementList,
-                      )
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      const Text('Skill affinity',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: affinityElementList,
-                      )
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      const Text('Ailment weakness',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: weaknessAilmentList,
-                      )
-                    ],
-                  ),
-                  Expanded(
-                      child: ListView.separated(
-                          itemCount: skillsData.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return ExpansionTile(
-                              title: Row(
-                                children: [
-                                  skillInfo[index][0],
-                                  skillInfo[index][1],
-                                  skillInfo[index][2],
-                                  skillInfo[index][3]
-                                ],
-                              ),
-                              children: [
-                                skillInfo[index][5],
-                                skillInfo[index][6],
-                                skillInfo[index][7],
-                              ],
-                            );
-                          },
-                          separatorBuilder: (BuildContext context, int index) =>
-                              Divider()))
-                ],
-              )),
-              fissionData[0][0]=='normal'?Column(
+          ),
+          body: TabBarView(children: [
+            Center(
+                child: Column(
                   children: [
+                    Container(height: 30),
+                    Text(statsData[2], style: const TextStyle(fontSize: 35)),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Cost'),
-                        Container(width: 70),
-                        const Text('Ingredient 1:'),
-                        Container(width: 120),
-                        const Text('Ingredient 2:')
+                        Text('Race: ' + statsData[0]),
+                        Container(width: 10),
+                        Text('LVL: ' + statsData[1]),
                       ],
                     ),
-                    Divider(
-                        thickness: 5
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('HP: ' + statsData[3]),
+                        Container(width: 20),
+                        Text('MP: ' + statsData[4])
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('STR:' + statsData[5]),
+                        Container(width: 5),
+                        Text('VIT:' + statsData[6]),
+                        Container(width: 5),
+                        Text('MAG:' + statsData[7])
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('AGI:' + statsData[8]),
+                        Container(width: 5),
+                        Text('LUK:' + statsData[9])
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        const Text('Element weakness',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: weaknessElementList,
+                        )
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        const Text('Skill affinity',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: affinityElementList,
+                        )
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        const Text('Ailment weakness',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: weaknessAilmentList,
+                        )
+                      ],
                     ),
                     Expanded(
                         child: ListView.separated(
-                            itemCount: fissionData.length-1,
+                            itemCount: skillsData.length,
                             itemBuilder: (BuildContext context, int index) {
-                              return Row(
-                                children: <Widget>[
-                                  Column(
-                                    children: [
-                                      Text(fissionData[index+1][0]),
-                                      Container(height: 5),
-                                      const Text('Macca')
-                                    ],
-                                  ),
-                                  Container(width: 15),
-                                  InkWell(
-                                    child: Container(
-                                      width: 145,
-                                      child: Column(
-                                        children: [
-                                          Text(fissionData[index+1][1] + ' LVL: '+ fissionData[index+1][2]),
-                                          Container(height: 5),
-                                          Text(fissionData[index+1][3] + ' ')
-                                        ],
-                                      ),
+                              return ExpansionTile(
+                                title: Row(
+                                  children: [
+                                    skillInfo[index][0],
+                                    skillInfo[index][1],
+                                    skillInfo[index][2],
+                                    skillInfo[index][3]
+                                  ],
+                                ),
+                                children: [
+                                  skillInfo[index][5],
+                                  skillInfo[index][6],
+                                  skillInfo[index][7],
+                                ],
+                              );
+                            },
+                            separatorBuilder: (BuildContext context, int index) =>
+                                const Divider()))
+                  ],
+                )),
+            fissionData[0][0]=='normal'?Column(
+                children: [
+                  Row(
+                    children: [
+                      const Text('Cost'),
+                      Container(width: 70),
+                      const Text('Ingredient 1:'),
+                      Container(width: 120),
+                      const Text('Ingredient 2:')
+                    ],
+                  ),
+                  const Divider(
+                      thickness: 5
+                  ),
+                  Expanded(
+                      child: ListView.separated(
+                          itemCount: fissionData.length-1,
+                          itemBuilder: (BuildContext context, int index) {
+                            return Row(
+                              children: <Widget>[
+                                Column(
+                                  children: [
+                                    Text(fissionData[index+1][0]),
+                                    Container(height: 5),
+                                    const Text('Macca')
+                                  ],
+                                ),
+                                Container(width: 15),
+                                InkWell(
+                                  child: SizedBox(
+                                    width: 145,
+                                    child: Column(
+                                      children: [
+                                        Text(fissionData[index+1][1] + ' LVL: '+ fissionData[index+1][2]),
+                                        Container(height: 5),
+                                        Text(fissionData[index+1][3] + ' ')
+                                      ],
                                     ),
-                                    onTap:() => Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => DetailedPage(
-                                                storage: storage,
-                                                ind: storage.indexFromName(fissionData[index+1][3])
-                                            )
-                                        )
-                                    ),
                                   ),
-                                  Container(width: 50),
-                                  Expanded(
+                                  onTap:() => Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => DetailedPage(
+                                              storage: storage,
+                                              ind: storage.indexFromName(fissionData[index+1][3])
+                                          )
+                                      )
+                                  ),
+                                ),
+                                Container(width: 50),
+                                Expanded(
                                     child: InkWell(
                                       child: Column(
                                         children: [
@@ -890,97 +812,97 @@ class DetailedPage extends StatelessWidget {
                                           )
                                       ),
                                     )
-                                  )
-                                ],
-                              );
-                            }, separatorBuilder: (BuildContext context, int index) => Divider())
-                    )
-                  ]
-              ):
-                Column(
+                                )
+                              ],
+                            );
+                          }, separatorBuilder: (BuildContext context, int index) => const Divider())
+                  )
+                ]
+            ):
+            Column(
+              children: [
+                const Text('Special Fusion Recipe'),
+                Row(
                   children: [
-                    Text('Special Fusion Recipe'),
-                    Row(
-                      children: [
-                        const Text('Cost'),
-                        Container(width: 70),
-                        const Text('Ingredient')
-                      ],
-                    ),
-                    Divider(
-                        thickness: 5
-                    ),
-                    Expanded(
-                        child: ListView.separated(
-                            itemCount: fissionData.length-1,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Row(
-                                children: <Widget>[
-                                  Column(
-                                    children: [
-                                      Text(fissionData[index+1][0]),
-                                      Container(height: 5),
-                                      const Text('Macca')
-                                    ],
-                                  ),
-                                  Container(width: 15),
-                                  InkWell(
-                                    child: Container(
-                                      width: 145,
-                                      child: Column(
-                                        children: [
-                                          Text(fissionData[index+1][1] + ' LVL: '+ fissionData[index+1][2]),
-                                          Container(height: 5),
-                                          Text(fissionData[index+1][3] + ' ')
-                                        ],
-                                      ),
+                    const Text('Cost'),
+                    Container(width: 70),
+                    const Text('Ingredient')
+                  ],
+                ),
+                const Divider(
+                    thickness: 5
+                ),
+                Expanded(
+                    child: ListView.separated(
+                        itemCount: fissionData.length-1,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Row(
+                            children: <Widget>[
+                              Column(
+                                children: [
+                                  Text(fissionData[index+1][0]),
+                                  Container(height: 5),
+                                  const Text('Macca')
+                                ],
+                              ),
+                              Container(width: 15),
+                              InkWell(
+                                  child: SizedBox(
+                                    width: 145,
+                                    child: Column(
+                                      children: [
+                                        Text(fissionData[index+1][1] + ' LVL: '+ fissionData[index+1][2]),
+                                        Container(height: 5),
+                                        Text(fissionData[index+1][3] + ' ')
+                                      ],
                                     ),
-                                      onTap:() => Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => DetailedPage(
-                                                  storage: storage,
-                                                  ind: storage.indexFromName(fissionData[index+1][3])
-                                              )
+                                  ),
+                                  onTap:() => Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => DetailedPage(
+                                              storage: storage,
+                                              ind: storage.indexFromName(fissionData[index+1][3])
                                           )
                                       )
                                   )
-                                ],
-                              );
-                            }, separatorBuilder: (BuildContext context, int index) => Divider())
-                    )
+                              )
+                            ],
+                          );
+                        }, separatorBuilder: (BuildContext context, int index) => const Divider())
+                )
+              ],
+            ),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    const Text('Cost'),
+                    Container(width: 70),
+                    const Text('Ingredient 2:'),
+                    Container(width: 120),
+                    const Text('Result')
                   ],
                 ),
-              Column(
-                children: [
-                  Row(
-                      children: [
-                        const Text('Cost'),
-                        Container(width: 70),
-                        const Text('Ingredient 2:'),
-                        Container(width: 120),
-                        const Text('Result')
-                      ],
-                  ),
-                  Divider(
+                const Divider(
                     thickness: 5
-                  ),
-                  Expanded(
-                      child: ListView.separated(
-                          itemCount: fusionData.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return Row(
-                              children: <Widget>[
-                                Column(
-                                  children: [
-                                    Text(fusionData[index][0]),
-                                    Container(height: 5),
-                                    const Text('Macca')
-                                  ],
-                                ),
-                                Container(width: 15),
-                                InkWell(
-                                  child: Container(
+                ),
+                Expanded(
+                    child: ListView.separated(
+                        itemCount: fusionData.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Row(
+                            children: <Widget>[
+                              Column(
+                                children: [
+                                  Text(fusionData[index][0]),
+                                  Container(height: 5),
+                                  const Text('Macca')
+                                ],
+                              ),
+                              Container(width: 15),
+                              InkWell(
+                                  child: SizedBox(
                                     width: 145,
                                     child: Column(
                                       children: [
@@ -990,19 +912,19 @@ class DetailedPage extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                    onTap:() => Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => DetailedPage(
-                                                storage: storage,
-                                                ind: storage.indexFromName(fusionData[index][3])
-                                            )
-                                        )
-                                    )
-                                ),
-                                Container(width: 50),
-                                Expanded(
-                                  child: InkWell(
+                                  onTap:() => Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => DetailedPage(
+                                              storage: storage,
+                                              ind: storage.indexFromName(fusionData[index][3])
+                                          )
+                                      )
+                                  )
+                              ),
+                              Container(width: 50),
+                              Expanded(
+                                child: InkWell(
                                     child: Column(
                                       children: [
                                         Text(fusionData[index][4] + ' LVL: '+ fusionData[index][5]),
@@ -1019,16 +941,88 @@ class DetailedPage extends StatelessWidget {
                                             )
                                         )
                                     )
-                                  ),
-                                )
-                              ],
-                            );
-                          }, separatorBuilder: (BuildContext context, int index) => Divider())
-                  )
-                ],
-              )
-            ]),
+                                ),
+                              )
+                            ],
+                          );
+                        }, separatorBuilder: (BuildContext context, int index) => const Divider())
+                )
+              ],
+            )
+          ]),
         )
     );
   }
+}
+
+class SkillsList extends StatefulWidget{
+  SkillsList({Key? key, required this.storage}) : super(key: key);
+
+  Storage storage;
+
+  @override
+  State<StatefulWidget> createState() => _SkillsList(storage: storage);
+}
+
+class _SkillsList extends State<SkillsList>{
+  _SkillsList({required this.storage});
+
+  Storage storage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Skills'),
+      ),
+      body: FutureBuilder(
+        future: storage.futureStatsList,
+        builder: (
+            BuildContext context,
+            AsyncSnapshot<List> snapshot,
+        ) {
+          if (snapshot.hasData){
+            return Column(
+              children: [
+                Text(storage.statsList[storage.indexFromName('Shiisaa')].toString())
+              ],
+            );
+          } else if (snapshot.hasError){
+            return const Text("Error");
+          } else {
+            return const Text("Loading...");
+          }
+        },
+      ),
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            const DrawerHeader(
+                decoration: BoxDecoration(
+                    color: Colors.orange
+                ),
+                child: Text('Demon compendium')
+            ),
+            ListTile(
+              title: const Text('Stats'),
+              onTap: () {
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(
+                        builder: (context) => MyHomePage(storage: storage)
+                    )
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Skills'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }
