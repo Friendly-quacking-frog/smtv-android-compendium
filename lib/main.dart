@@ -606,8 +606,8 @@ class DetailedPage extends StatelessWidget {
                                 const Divider()))
                   ],
                 )),
-            Text('fissions'),
-            Text('fusions')
+            const Text('fissions'),
+            const Text('fusions')
           ]),
         )
     );

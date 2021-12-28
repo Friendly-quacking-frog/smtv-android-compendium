@@ -14,7 +14,7 @@ class DemonStats {
   final String resists;
   final Map<String, dynamic> skills;
 
-  String _getAilments(String value){
+  String _getAilments(String? value){
     if (value == null){
       return '------';
     } else {
