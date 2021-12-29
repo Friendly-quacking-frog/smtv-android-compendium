@@ -606,8 +606,31 @@ class DetailedPage extends StatelessWidget {
                                 const Divider()))
                   ],
                 )),
-            const Text('fissions'),
-            const Text('fusions')
+            storage.specialFusions.containsKey(name)
+            ?Center(
+              child: Column(
+                children: [
+                  Container(height: 5),
+                  const Text('Requirements', style: TextStyle(fontSize: 35)),
+                  Text(storage.specialFusions[name]!.prereq),
+                  Divider(),
+                  const Text('Recipe', style: TextStyle(fontSize: 35)),
+                  Container(height: 5),
+                  Expanded(
+                      child: ListView.builder(
+                          itemCount: storage.specialFusions[name]!.recipe.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(storage.specialFusions[name]!.recipe[index])
+                            );
+                          }
+                      )
+                  )
+                ],
+              ),
+            )
+            :Text('Normal reverse fusions'),
+            const Text('Forward fusions')
           ]),
         )
     );

@@ -113,12 +113,23 @@ class SkillData {
 
 }
 
+class SpecialFusion {
+  List recipe = [];
+  String prereq = '';
+
+  SpecialFusion(List rec, String pre){
+    recipe = rec;
+    prereq = pre;
+  }
+}
+
 class Storage {
 
   late Future<List> futureStatsList;
   List<DemonStats> statsList = [];
   late Future<List> futureSkillsList;
   List<SkillData> _skillsList = [];
+  Map<String, SpecialFusion> specialFusions = {};
   late Future<List> futureFissionList;
   List _fissionList = [];
   late Future<List> futureFusionList;
@@ -265,6 +276,20 @@ class Storage {
     return data;
   }
 
+  Future<Map<String, SpecialFusion>> _loadSpecialFusions() async {
+    Map<String, SpecialFusion> result = {};
+    var data = await rootBundle.loadString('assets/data/special-recipes.json');
+    Map<String, dynamic> recipes = jsonDecode(data);
+    data = await rootBundle.loadString('assets/data/fusion-prereqs.json');
+    Map<String, dynamic> prereqs = jsonDecode(data);
+    var recipe = recipes.entries;
+    for (var entry in recipe){
+      SpecialFusion temp = SpecialFusion(entry.value, prereqs[entry.key]);
+      result[entry.key] = temp;
+    }
+    return result;
+  }
+
   //return index of demon based on its name
 
   List fissionFromName(String name){
@@ -293,6 +318,9 @@ class Storage {
     futureSkillsList = _makeSkillsList();
     futureFusionList = _makeFusionList();
     futureFissionList = _makeFissionList();
+    _loadSpecialFusions().then((value) => {
+      specialFusions = value
+    });
     futureStatsList.then((value) => {
       statsList = value.cast<DemonStats>()
     });
