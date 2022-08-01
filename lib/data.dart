@@ -41,7 +41,7 @@ class DemonStats {
   factory DemonStats.fromJson(String demonName, Map<String, dynamic> json)=> DemonStats(
       name : demonName,
       affinities: json['affinities'].cast<int>(),
-      ailments: json['ailments'],
+      ailments: json['ailments'] ?? '------',
       level: json['lvl'],
       price: json['price'],
       race: json['race'],
@@ -106,9 +106,9 @@ class SkillData {
       name: skillName,
       effect: json['effect'],
       element: json['element'],
-      target: json['target'],
-      cost: json['cost'],
-      rank: json['rank']
+      target: json['target'] ?? 'self',
+      cost: json['cost'] ?? 0,
+      rank: json['rank'] ?? 0
   );
 
 }
@@ -284,7 +284,7 @@ class Storage {
     Map<String, dynamic> prereqs = jsonDecode(data);
     var recipe = recipes.entries;
     for (var entry in recipe){
-      SpecialFusion temp = SpecialFusion(entry.value, prereqs[entry.key]);
+      SpecialFusion temp = SpecialFusion(entry.value, prereqs[entry.key] ?? 'None');
       result[entry.key] = temp;
     }
     return result;
